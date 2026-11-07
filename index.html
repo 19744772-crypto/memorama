@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memorama Épico - Adrian Goggins</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+
+        :root {
+            --bg-dark: #0f172a;
+            --bg-light: #12111d;
+            --text-color: #f8fafc;
+            --accent: #38bdf8;
+            --success: #10b981;
+            --btn-color: #8b5cf6;
+            --btn-hover: #7c3aed;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark), var(--bg-light));
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Permitimos el scroll por si acaso en pantallas pequeñas */
+            overflow-y: auto; 
+            overflow-x: hidden;
+        }
+
+        /* --- BARRA DE OPCIONES FLOTANTE (Arriba a la derecha) --- */
+        .top-bar {
+            position: fixed; /* Se queda fija aunque bajes */
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .top-bar button, .top-bar a {
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn-restart {
+            background: rgba(30, 41, 59, 0.9);
+            color: var(--text-color);
+            border: 1px solid rgba(255,255,255,0.2) !important;
+        }
+        .btn-restart:hover { background: var(--btn-color); border-color: var(--btn-color) !important; transform: translateY(-2px); }
+
+        .btn-donate-top {
+            background: #0070ba; 
+            color: white;
+        }
+        .btn-donate-top:hover { background: #005ea6; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 112, 186, 0.5); }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            padding: 80px 20px 40px 20px; /* Espacio arriba para que no choque con los botones fijos */
+            box-sizing: border-box;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 { 
+            margin: 0; 
+            font-size: 34px; 
+            font-weight: 800;
+            color: var(--accent);
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
+        }
+        
+        .header p { margin: 5px 0; font-size: 15px; color: #94a3b8; letter-spacing: 1px;}
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 450px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 16px;
+            background: rgba(30, 41, 59, 0.7);
+            padding: 12px 25px;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-sizing: border-box;
+        }
+
+        .stats span { color: #fbbf24; }
+
+        /* --- TABLERO DE JUEGO --- */
+        #game-board {
+            display: grid;
+            gap: 12px;
+            width: 100%;
+            max-width: 450px; /* Tamaño ideal para que se vea bien en PC */
+            perspective: 1000px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            aspect-ratio: 1 / 1;
+            position: relative;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 15px;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card.matched {
+            transform: rotateY(180deg) scale(0.95);
+            pointer-events: none;
+            box-shadow: 0 0 20px var(--success);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        .card-back {
+            background: linear-gradient(45deg, #1e293b, #334155);
+            border: 2px solid #475569;
+            font-size: 2rem;
+            color: #64748b;
+        }
+
+        .card-front {
+            background: #f8fafc;
+            transform: rotateY(180deg);
+            border: 2px solid var(--accent);
+        }
+
+        /* --- MENSAJE DE VICTORIA --- */
+        #win-message {
+            display: none;
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            padding: 30px 50px;
+            background: rgba(16, 185, 129, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(16, 185, 129, 0.6);
+            z-index: 2000;
+        }
+
+        #win-message h2 { margin: 0 0 20px 0; font-size: 26px; color: white; }
+        
+        #win-message button {
+            background: white;
+            color: var(--success);
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: 800;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        #win-message button:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.2);}
+
+        /* Adaptación para celulares */
+        @media (max-width: 600px) {
+            .top-bar { top: 10px; right: 10px; gap: 8px; }
+            .top-bar button, .top-bar a { padding: 8px 12px; font-size: 12px; }
+            .main-container { padding-top: 70px; }
+            .header h1 { font-size: 26px; }
+            #game-board { max-width: 95vw; gap: 8px; }
+            .card-face { font-size: 1.8rem; border-radius: 10px; }
+            .card-back { font-size: 1.5rem; }
+            .stats { max-width: 95vw; font-size: 14px; padding: 10px 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- OPCIONES FIJAS EN LA ESQUINA -->
+    <div class="top-bar">
+        <button id="restart-btn" class="btn-restart">Reiniciar 🔄</button>
+        <a href="https://paypal.me/AdrianN413" target="_blank" class="btn-donate-top">Donar vía PayPal 💙</a>
+    </div>
+
+    <div class="main-container">
+        <div class="header">
+            <h1>Memorama Épico</h1>
+            <p>Creado por <strong>Adrian Goggins</strong></p>
+        </div>
+        
+        <div class="stats">
+            <div>Nivel: <span id="level-display">1</span>/6</div>
+            <div>Movimientos: <span id="moves-display">0</span></div>
+        </div>
+
+        <div id="game-board"></div>
+
+        <div id="win-message">
+            <h2>¡Nivel Completado! 🎉</h2>
+            <button id="next-btn">Siguiente Nivel ➡️</button>
+        </div>
+    </div>
+
+    <script>
+        const levels = [
+            { id: 1, name: "Caballos", emojis: ["🐎", "🏇", "🦄", "🐴"], grid: 2 },
+            { id: 2, name: "Emojis", emojis: ["😀", "😂", "😎", "😍", "😡", "🥶"], grid: 3 },
+            { id: 3, name: "Frutas", emojis: ["🍎", "🍌", "🍇", "🍉", "🍓", "🍒", "🍍", "🥝"], grid: 4 },
+            { id: 4, name: "Animales", emojis: ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯"], grid: 4 },
+            { id: 5, name: "Dificil", emojis: ["🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑", "🚒", "🚐", "🛻", "🚚"], grid: 4 },
+            { id: 6, name: "Maestro", emojis: ["🐵", "🐶", "🐺", "🦊", "🦝", "🐱", "🦁", "🐯", "🐴", "🦄", "🦓", "🦌", "🐮", "🐷", "🐗", "🐭"], grid: 4 }
+        ];
+
+        let currentLevelIndex = 0;
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let moves = 0;
+        let lockBoard = false;
+
+        const board = document.getElementById('game-board');
+        const levelDisplay = document.getElementById('level-display');
+        const movesDisplay = document.getElementById('moves-display');
+        const winMessage = document.getElementById('win-message');
+        const nextBtn = document.getElementById('next-btn');
+        const restartBtn = document.getElementById('restart-btn');
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function initLevel() {
+            const level = levels[currentLevelIndex];
+            levelDisplay.textContent = level.id;
+            moves = 0;
+            movesDisplay.textContent = moves;
+            matchedPairs = 0;
+            flippedCards = [];
+            lockBoard = false;
+            winMessage.style.display = 'none';
+            board.innerHTML = '';
+
+            let cols = 2;
+            if (level.id === 2) cols = 3;
+            if (level.id >= 3) cols = 4;
+
+            board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+            let levelEmojis = [...level.emojis, ...level.emojis];
+            cards = shuffle(levelEmojis);
+
+            cards.forEach((emoji) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.emoji = emoji;
+                
+                card.innerHTML = `
+                    <div class="card-face card-back">❓</div>
+                    <div class="card-face card-front">${emoji}</div>
+                `;
+
+                card.addEventListener('click', () => flipCard(card));
+                board.appendChild(card);
+            });
+        }
+
+        function flipCard(card) {
+            if (lockBoard) return;
+            if (card === flippedCards[0]) return;
+            if (card.classList.contains('flipped')) return;
+
+            card.classList.add('flipped');
+            flippedCards.push(card);
+
+            if (flippedCards.length === 2) {
+                moves++;
+                movesDisplay.textContent = moves;
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+            const isMatch = card1.dataset.emoji === card2.dataset.emoji;
+
+            if (isMatch) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedPairs++;
+                flippedCards = [];
+
+                if (matchedPairs === cards.length / 2) {
+                    setTimeout(() => {
+                        if (currentLevelIndex < levels.length - 1) {
+                            winMessage.style.display = 'block';
+                        } else {
+                            winMessage.innerHTML = '<h2>¡Juego Completado! 🏆</h2><button onclick="location.reload()">Jugar de nuevo</button>';
+                            winMessage.style.display = 'block';
+                        }
+                    }, 500);
+                }
+            } else {
+                lockBoard = true;
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    flippedCards = [];
+                    lockBoard = false;
+                }, 1000);
+            }
+        }
+
+        nextBtn.addEventListener('click', () => {
+            currentLevelIndex++;
+            initLevel();
+        });
+
+        restartBtn.addEventListener('click', () => {
+            initLevel();
+        });
+
+        initLevel();
+    </script>
+</body>
+</html>
