@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memorama Épico - Adrian Goggins</title>
+    <title>Memorama Pro - Adrian Goggins</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Poppins:wght@400;700&display=swap');
 
         :root {
             --bg-dark: #0f172a;
-            --bg-light: #12111d;
-            --text-color: #f8fafc;
-            --accent: #38bdf8;
-            --success: #10b981;
-            --btn-color: #8b5cf6;
-            --btn-hover: #7c3aed;
+            --bg-light: #2e1065;
+            --text-color: #ffffff;
+            --accent: #06b6d4; /* Cian neón */
+            --card-back: linear-gradient(135deg, #4c1d95, #1e1b4b);
+            --card-border: #8b5cf6;
         }
 
         body {
@@ -27,241 +26,326 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* Permitimos el scroll por si acaso en pantallas pequeñas */
+            /* AQUÍ ESTÁ EL ARREGLO: Permitimos el desplazamiento vertical */
             overflow-y: auto; 
             overflow-x: hidden;
         }
 
-        /* --- BARRA DE OPCIONES FLOTANTE (Arriba a la derecha) --- */
-        .top-bar {
-            position: fixed; /* Se queda fija aunque bajes */
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-            z-index: 1000;
-        }
-
-        .top-bar button, .top-bar a {
-            padding: 10px 18px;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 25px;
-            border: none;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-family: 'Poppins', sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        .btn-restart {
-            background: rgba(30, 41, 59, 0.9);
-            color: var(--text-color);
-            border: 1px solid rgba(255,255,255,0.2) !important;
-        }
-        .btn-restart:hover { background: var(--btn-color); border-color: var(--btn-color) !important; transform: translateY(-2px); }
-
-        .btn-donate-top {
-            background: #0070ba; 
-            color: white;
-        }
-        .btn-donate-top:hover { background: #005ea6; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 112, 186, 0.5); }
-
-        /* --- CONTENEDOR PRINCIPAL --- */
-        .main-container {
-            display: flex;
+        /* --- PANTALLAS --- */
+        .screen {
+            display: none;
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 600px;
-            padding: 80px 20px 40px 20px; /* Espacio arriba para que no choque con los botones fijos */
+            max-width: 500px;
+            padding: 40px 20px; /* Añadí espacio arriba y abajo */
             box-sizing: border-box;
-        }
-
-        .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin: auto; /* Centra el contenido si hay espacio de sobra */
         }
+        .screen.active { display: flex; }
 
-        .header h1 { 
-            margin: 0; 
-            font-size: 34px; 
-            font-weight: 800;
+        /* --- PANTALLA DE INICIO --- */
+        h1 {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 42px;
+            margin: 0;
             color: var(--accent);
-            text-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
+            text-shadow: 0 0 15px var(--accent);
         }
-        
-        .header p { margin: 5px 0; font-size: 15px; color: #94a3b8; letter-spacing: 1px;}
-        
-        .stats {
+        .subtitle { color: #cbd5e1; font-size: 14px; margin-bottom: 30px; letter-spacing: 2px;}
+
+        input[type="text"] {
+            width: 80%;
+            padding: 15px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--card-border);
+            border-radius: 10px;
+            color: white;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 18px;
+            text-align: center;
+            outline: none;
+            transition: 0.3s;
+        }
+        input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .btn-main {
+            background: transparent;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'Share Tech Mono', monospace;
+            border-radius: 10px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.3s;
+            width: 80%;
+            margin-bottom: 15px;
+        }
+        .btn-main:hover { background: var(--accent); color: #000; box-shadow: 0 0 20px var(--accent); }
+
+        .btn-reset {
+            background: transparent;
+            color: #94a3b8;
+            border: 1px solid #475569;
+            padding: 8px 15px;
+            font-size: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Share Tech Mono', monospace;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        .btn-reset:hover { color: #ef4444; border-color: #ef4444; }
+
+        /* --- PANTALLA DE JUEGO --- */
+        .top-bar {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             width: 100%;
-            max-width: 450px;
             margin-bottom: 20px;
-            font-weight: 600;
-            font-size: 16px;
-            background: rgba(30, 41, 59, 0.7);
-            padding: 12px 25px;
-            border-radius: 30px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-sizing: border-box;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 15px;
+            color: var(--accent);
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid var(--card-border);
         }
+        
+        .btn-small {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid var(--card-border);
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Share Tech Mono', monospace;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        .btn-small:hover { background: var(--card-border); }
 
-        .stats span { color: #fbbf24; }
-
-        /* --- TABLERO DE JUEGO --- */
         #game-board {
             display: grid;
-            gap: 12px;
+            gap: 10px;
             width: 100%;
-            max-width: 450px; /* Tamaño ideal para que se vea bien en PC */
+            max-width: 420px;
             perspective: 1000px;
-            justify-content: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
+        /* --- CARTAS --- */
         .card {
             aspect-ratio: 1 / 1;
             position: relative;
             cursor: pointer;
             transform-style: preserve-3d;
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border-radius: 15px;
         }
-
-        .card.flipped {
-            transform: rotateY(180deg);
-        }
-
-        .card.matched {
-            transform: rotateY(180deg) scale(0.95);
-            pointer-events: none;
-            box-shadow: 0 0 20px var(--success);
-        }
+        .card.flipped { transform: rotateY(180deg); }
+        .card.matched { pointer-events: none; }
+        .card.matched .card-front { border-color: #10b981; box-shadow: 0 0 15px #10b981; }
 
         .card-face {
             position: absolute;
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
-            border-radius: 15px;
+            -webkit-backface-visibility: hidden;
+            border-radius: 12px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 2.5rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
         }
-
+        
         .card-back {
-            background: linear-gradient(45deg, #1e293b, #334155);
-            border: 2px solid #475569;
+            background: var(--card-back);
+            border: 2px solid var(--card-border);
+            color: rgba(255,255,255,0.3);
             font-size: 2rem;
-            color: #64748b;
+            font-family: 'Share Tech Mono', monospace;
         }
-
+        
         .card-front {
-            background: #f8fafc;
+            background: #ffffff;
             transform: rotateY(180deg);
-            border: 2px solid var(--accent);
+            border: 3px solid var(--accent);
+            font-size: 3rem;
         }
 
-        /* --- MENSAJE DE VICTORIA --- */
+        /* --- MENSAJE VICTORIA --- */
         #win-message {
             display: none;
-            position: fixed;
+            position: fixed; /* Cambiado a fixed para que no se mueva si hay scroll */
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
+            background: rgba(15, 23, 42, 0.95);
+            border: 2px solid var(--accent);
+            border-radius: 15px;
+            padding: 30px;
             text-align: center;
-            padding: 30px 50px;
-            background: rgba(16, 185, 129, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 0 50px rgba(16, 185, 129, 0.6);
-            z-index: 2000;
+            z-index: 100;
+            box-shadow: 0 0 40px rgba(6, 182, 212, 0.4);
+            width: 80%;
+            max-width: 320px;
         }
 
-        #win-message h2 { margin: 0 0 20px 0; font-size: 26px; color: white; }
-        
-        #win-message button {
-            background: white;
-            color: var(--success);
-            border: none;
-            padding: 12px 25px;
-            font-size: 16px;
-            font-weight: 800;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        #win-message button:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.2);}
-
-        /* Adaptación para celulares */
-        @media (max-width: 600px) {
-            .top-bar { top: 10px; right: 10px; gap: 8px; }
-            .top-bar button, .top-bar a { padding: 8px 12px; font-size: 12px; }
-            .main-container { padding-top: 70px; }
-            .header h1 { font-size: 26px; }
-            #game-board { max-width: 95vw; gap: 8px; }
-            .card-face { font-size: 1.8rem; border-radius: 10px; }
-            .card-back { font-size: 1.5rem; }
-            .stats { max-width: 95vw; font-size: 14px; padding: 10px 15px; }
+        /* Botón flotante de donación */
+        .donate-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #0070ba;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            z-index: 1000;
         }
     </style>
 </head>
 <body>
 
-    <!-- OPCIONES FIJAS EN LA ESQUINA -->
-    <div class="top-bar">
-        <button id="restart-btn" class="btn-restart">Reiniciar 🔄</button>
-        <a href="https://paypal.me/AdrianN413" target="_blank" class="btn-donate-top">Donar vía PayPal 💙</a>
+    <a href="https://paypal.me/AdrianN413" target="_blank" class="donate-btn">Donar 💙</a>
+
+    <!-- PANTALLA DE INICIO -->
+    <div id="screen-home" class="screen active">
+        <h1>MEMORAMA PRO</h1>
+        <p class="subtitle">Desarrollado por Adrian Goggins</p>
+        
+        <input type="text" id="player-name" placeholder="Ingresa tu nombre" maxlength="15">
+        <button class="btn-main" onclick="startGame()">Iniciar / Continuar</button>
+        <button class="btn-reset" onclick="resetProgress()">Borrar Progreso Guardado</button>
     </div>
 
-    <div class="main-container">
-        <div class="header">
-            <h1>Memorama Épico</h1>
-            <p>Creado por <strong>Adrian Goggins</strong></p>
+    <!-- PANTALLA DE JUEGO -->
+    <div id="screen-game" class="screen">
+        <div class="top-bar">
+            <div>Jugador: <span id="display-name" style="color:white;"></span></div>
+            <div>Nivel: <span id="level-display" style="color:#fbbf24;">1</span>/25</div>
+            <div>Mov: <span id="moves-display" style="color:#fbbf24;">0</span></div>
         </div>
         
-        <div class="stats">
-            <div>Nivel: <span id="level-display">1</span>/6</div>
-            <div>Movimientos: <span id="moves-display">0</span></div>
-        </div>
-
         <div id="game-board"></div>
+        
+        <button class="btn-small" onclick="goHome()">← Guardar y Salir</button>
 
         <div id="win-message">
-            <h2>¡Nivel Completado! 🎉</h2>
-            <button id="next-btn">Siguiente Nivel ➡️</button>
+            <h2 style="color: var(--accent); font-family: 'Share Tech Mono'; margin-top:0;">¡NIVEL COMPLETADO!</h2>
+            <p style="font-size: 18px;">Tiempo: <span id="time-display" style="color:#fbbf24; font-weight:bold;">0</span>s</p>
+            <button class="btn-main" style="width: 100%; margin-top: 10px; margin-bottom:0;" id="next-btn">Siguiente Nivel</button>
         </div>
     </div>
 
     <script>
-        const levels = [
-            { id: 1, name: "Caballos", emojis: ["🐎", "🏇", "🦄", "🐴"], grid: 2 },
-            { id: 2, name: "Emojis", emojis: ["😀", "😂", "😎", "😍", "😡", "🥶"], grid: 3 },
-            { id: 3, name: "Frutas", emojis: ["🍎", "🍌", "🍇", "🍉", "🍓", "🍒", "🍍", "🥝"], grid: 4 },
-            { id: 4, name: "Animales", emojis: ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯"], grid: 4 },
-            { id: 5, name: "Dificil", emojis: ["🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑", "🚒", "🚐", "🛻", "🚚"], grid: 4 },
-            { id: 6, name: "Maestro", emojis: ["🐵", "🐶", "🐺", "🦊", "🦝", "🐱", "🦁", "🐯", "🐴", "🦄", "🦓", "🦌", "🐮", "🐷", "🐗", "🐭"], grid: 4 }
-        ];
+        // --- CONFIGURACIÓN DE 25 NIVELES ---
+        const baseEmojis = ["🐎", "🏇", "🦄", "🐴", "😀", "😂", "😎", "😍", "😡", "🥶", "🍎", "🍌", "🍇", "🍉", "🍓", "🍒", "🍍", "🥝", "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑"];
+        const levels = [];
+        
+        for (let i = 1; i <= 25; i++) {
+            let numPairs = Math.min(2 + Math.floor(i / 2), 12); 
+            let cols = 2;
+            if (numPairs > 2 && numPairs <= 4) cols = 2;
+            if (numPairs > 4 && numPairs <= 6) cols = 3;
+            if (numPairs > 6 && numPairs <= 12) cols = 4;
+            
+            levels.push({
+                id: i,
+                pairs: numPairs,
+                cols: cols,
+                showTime: i >= 15 ? 3000 : 0 
+            });
+        }
 
         let currentLevelIndex = 0;
+        let playerName = "";
         let cards = [];
         let flippedCards = [];
         let matchedPairs = 0;
         let moves = 0;
         let lockBoard = false;
+        let timerInterval;
+        let secondsElapsed = 0;
 
         const board = document.getElementById('game-board');
         const levelDisplay = document.getElementById('level-display');
         const movesDisplay = document.getElementById('moves-display');
         const winMessage = document.getElementById('win-message');
-        const nextBtn = document.getElementById('next-btn');
-        const restartBtn = document.getElementById('restart-btn');
+        const timeDisplay = document.getElementById('time-display');
+        const nameInput = document.getElementById('player-name');
+
+        function saveProgress() {
+            const progress = { name: playerName, level: currentLevelIndex };
+            localStorage.setItem('memoramaProgress', JSON.stringify(progress));
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem('memoramaProgress');
+            if (saved) {
+                const progress = JSON.parse(saved);
+                nameInput.value = progress.name; 
+            }
+        }
+
+        function resetProgress() {
+            if(confirm("¿Seguro que quieres borrar tu progreso y empezar desde el Nivel 1?")) {
+                localStorage.removeItem('memoramaProgress');
+                nameInput.value = "";
+                alert("Progreso borrado.");
+            }
+        }
+
+        window.onload = loadProgress;
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function startGame() {
+            let inputName = nameInput.value.trim();
+            if (inputName === "") {
+                alert("Por favor, ingresa tu nombre para jugar.");
+                return;
+            }
+            playerName = inputName;
+            document.getElementById('display-name').textContent = playerName;
+
+            const saved = localStorage.getItem('memoramaProgress');
+            if (saved) {
+                const progress = JSON.parse(saved);
+                if (progress.name === playerName && progress.level > 0) {
+                    if (confirm(`¡Hola de nuevo ${playerName}! Encontramos que llegaste al Nivel ${progress.level + 1}. ¿Quieres continuar desde ahí?`)) {
+                        currentLevelIndex = progress.level;
+                    } else {
+                        currentLevelIndex = 0;
+                    }
+                } else {
+                    currentLevelIndex = 0;
+                }
+            } else {
+                currentLevelIndex = 0;
+            }
+
+            showScreen('screen-game');
+            initLevel();
+        }
+
+        function goHome() {
+            clearInterval(timerInterval);
+            saveProgress();
+            showScreen('screen-home');
+        }
 
         function shuffle(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -278,18 +362,17 @@
             movesDisplay.textContent = moves;
             matchedPairs = 0;
             flippedCards = [];
-            lockBoard = false;
+            lockBoard = true; 
             winMessage.style.display = 'none';
             board.innerHTML = '';
+            secondsElapsed = 0;
+            timeDisplay.textContent = secondsElapsed;
 
-            let cols = 2;
-            if (level.id === 2) cols = 3;
-            if (level.id >= 3) cols = 4;
+            board.style.gridTemplateColumns = `repeat(${level.cols}, 1fr)`;
 
-            board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-
-            let levelEmojis = [...level.emojis, ...level.emojis];
-            cards = shuffle(levelEmojis);
+            let selectedEmojis = shuffle([...baseEmojis]).slice(0, level.pairs);
+            let gameEmojis = [...selectedEmojis, ...selectedEmojis];
+            cards = shuffle(gameEmojis);
 
             cards.forEach((emoji) => {
                 const card = document.createElement('div');
@@ -297,13 +380,39 @@
                 card.dataset.emoji = emoji;
                 
                 card.innerHTML = `
-                    <div class="card-face card-back">❓</div>
+                    <div class="card-face card-back">?</div>
                     <div class="card-face card-front">${emoji}</div>
                 `;
-
-                card.addEventListener('click', () => flipCard(card));
                 board.appendChild(card);
             });
+
+            if (level.showTime > 0) {
+                const allCards = board.querySelectorAll('.card');
+                allCards.forEach(c => c.classList.add('flipped'));
+                
+                setTimeout(() => {
+                    allCards.forEach(c => c.classList.remove('flipped'));
+                    setTimeout(() => {
+                        lockBoard = false;
+                        startTimer();
+                        allCards.forEach(c => c.addEventListener('click', () => flipCard(c)));
+                    }, 400);
+                }, level.showTime);
+            } else {
+                lockBoard = false;
+                startTimer();
+                board.querySelectorAll('.card').forEach(c => {
+                    c.addEventListener('click', () => flipCard(c));
+                });
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                timeDisplay.textContent = secondsElapsed;
+            }, 1000);
         }
 
         function flipCard(card) {
@@ -331,12 +440,19 @@
                 matchedPairs++;
                 flippedCards = [];
 
-                if (matchedPairs === cards.length / 2) {
+                const totalPairs = levels[currentLevelIndex].pairs;
+                if (matchedPairs === totalPairs) {
+                    clearInterval(timerInterval);
                     setTimeout(() => {
                         if (currentLevelIndex < levels.length - 1) {
                             winMessage.style.display = 'block';
                         } else {
-                            winMessage.innerHTML = '<h2>¡Juego Completado! 🏆</h2><button onclick="location.reload()">Jugar de nuevo</button>';
+                            localStorage.removeItem('memoramaProgress');
+                            winMessage.innerHTML = `
+                                <h2 style="color: var(--accent); font-family: 'Share Tech Mono';">¡JUEGO COMPLETADO!</h2>
+                                <p>Has superado los 25 niveles. Eres una leyenda.</p>
+                                <button class="btn-main" style="width: 100%; margin-top: 15px;" onclick="location.reload()">Volver a Jugar</button>
+                            `;
                             winMessage.style.display = 'block';
                         }
                     }, 500);
@@ -352,16 +468,11 @@
             }
         }
 
-        nextBtn.addEventListener('click', () => {
+        document.getElementById('next-btn').addEventListener('click', () => {
             currentLevelIndex++;
+            saveProgress();
             initLevel();
         });
-
-        restartBtn.addEventListener('click', () => {
-            initLevel();
-        });
-
-        initLevel();
     </script>
 </body>
 </html>
